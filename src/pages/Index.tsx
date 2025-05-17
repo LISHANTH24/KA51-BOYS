@@ -3,6 +3,7 @@ import React from 'react';
 import MoodDetector from '@/components/MoodDetector';
 import ComicRecommendations from '@/components/ComicRecommendations';
 import { useState } from 'react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const Index = () => {
   const [detectedMood, setDetectedMood] = useState<string | null>(null);
@@ -19,6 +20,13 @@ const Index = () => {
             Upload a photo of yourself and we'll recommend comics based on your mood
           </p>
         </header>
+        
+        <Alert className="mb-6">
+          <AlertTitle>Demo Mode Active</AlertTitle>
+          <AlertDescription>
+            Currently running in demo mode with simulated mood detection. In a production environment, this would use real facial expression analysis.
+          </AlertDescription>
+        </Alert>
         
         <div className="bg-white shadow-md rounded-lg p-6">
           <MoodDetector onMoodDetected={setDetectedMood} />
