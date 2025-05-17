@@ -30,7 +30,13 @@ const Index = () => {
         
         <div className="bg-white shadow-md rounded-lg p-6">
           <MoodDetector onMoodDetected={setDetectedMood} />
-          {detectedMood && <ComicRecommendations mood={detectedMood} />}
+          
+          {detectedMood && (
+            <>
+              <div className="my-6 border-t border-gray-200"></div>
+              <ComicRecommendations mood={detectedMood} />
+            </>
+          )}
         </div>
       </div>
     </div>

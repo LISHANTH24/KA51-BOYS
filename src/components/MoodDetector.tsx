@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface MoodDetectorProps {
@@ -13,18 +13,44 @@ const MoodDetector: React.FC<MoodDetectorProps> = ({ onMoodDetected }) => {
   const [image, setImage] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [detectedMood, setDetectedMood] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Mock mood detection - simulating facial analysis since the HuggingFace model isn't working
+  // Mock mood detection with better simulation
   const detectMoodFromImage = (imageData: string): Promise<string> => {
     return new Promise((resolve) => {
       // Simulate processing time
       setTimeout(() => {
-        // Generate a random mood from our set of supported moods
-        const moods = ['happy', 'sad', 'angry', 'neutral', 'surprise', 'fear', 'disgust'];
-        const randomIndex = Math.floor(Math.random() * moods.length);
-        resolve(moods[randomIndex]);
+        // Generate a mood with weighted probabilities for more realistic results
+        const moodOptions = [
+          { mood: 'happy', weight: 30 },
+          { mood: 'sad', weight: 15 },
+          { mood: 'angry', weight: 10 },
+          { mood: 'neutral', weight: 20 },
+          { mood: 'surprise', weight: 10 },
+          { mood: 'fear', weight: 8 },
+          { mood: 'disgust', weight: 7 }
+        ];
+        
+        // Calculate total weight
+        const totalWeight = moodOptions.reduce((sum, option) => sum + option.weight, 0);
+        
+        // Generate random number between 0 and total weight
+        let random = Math.floor(Math.random() * totalWeight);
+        
+        // Find the mood that corresponds to the random number
+        for (const option of moodOptions) {
+          random -= option.weight;
+          if (random < 0) {
+            resolve(option.mood);
+            break;
+          }
+        }
+        
+        // Fallback (should never happen)
+        resolve('neutral');
       }, 1500);
     });
   };
@@ -38,6 +64,8 @@ const MoodDetector: React.FC<MoodDetectorProps> = ({ onMoodDetected }) => {
       reader.onload = (event) => {
         if (event.target && typeof event.target.result === 'string') {
           setImage(event.target.result);
+          setDetectedMood(null);
+          setConfirmed(false);
           onMoodDetected(null); // Reset mood when new image is uploaded
         }
       };
@@ -51,19 +79,21 @@ const MoodDetector: React.FC<MoodDetectorProps> = ({ onMoodDetected }) => {
     
     try {
       setLoading(true);
+      setDetectedMood(null);
+      setConfirmed(false);
       onMoodDetected(null);
 
-      // Use our mock detection function instead of HuggingFace
-      const detectedMood = await detectMoodFromImage(image);
+      // Use our mock detection function
+      const mood = await detectMoodFromImage(image);
       
-      onMoodDetected(detectedMood);
+      setDetectedMood(mood);
       
       toast({
         title: "Mood detected",
-        description: `We detected your mood: ${detectedMood}`,
+        description: `We detected your mood: ${mood}`,
       });
       
-      console.log("Detected mood:", detectedMood);
+      console.log("Detected mood:", mood);
     } catch (error) {
       console.error("Error analyzing mood:", error);
       toast({
@@ -73,6 +103,18 @@ const MoodDetector: React.FC<MoodDetectorProps> = ({ onMoodDetected }) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const confirmMood = () => {
+    if (detectedMood) {
+      setConfirmed(true);
+      onMoodDetected(detectedMood);
+      
+      toast({
+        title: "Mood confirmed",
+        description: "Comic recommendations are now being generated based on your mood."
+      });
     }
   };
   
@@ -120,6 +162,30 @@ const MoodDetector: React.FC<MoodDetectorProps> = ({ onMoodDetected }) => {
           "Analyze Mood"
         )}
       </Button>
+
+      {detectedMood && !confirmed && (
+        <div className="w-full mt-2">
+          <div className="p-3 bg-gray-100 rounded-md mb-2 text-center">
+            <p className="font-medium">Detected mood: <span className="text-blue-600">{detectedMood}</span></p>
+            <p className="text-sm text-gray-500 mt-1">Does this seem right?</p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => analyzeMood()}
+              variant="outline" 
+              className="flex-1"
+            >
+              Try Again
+            </Button>
+            <Button 
+              onClick={confirmMood}
+              className="flex-1 bg-green-500 hover:bg-green-600"
+            >
+              <Check className="mr-2 h-4 w-4" /> Confirm
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
