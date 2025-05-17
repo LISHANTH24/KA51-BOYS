@@ -1,11 +1,29 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React from 'react';
+import MoodDetector from '@/components/MoodDetector';
+import ComicRecommendations from '@/components/ComicRecommendations';
+import { useState } from 'react';
 
 const Index = () => {
+  const [detectedMood, setDetectedMood] = useState<string | null>(null);
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-3xl">🎭</span>
+            <h1 className="text-3xl font-bold">Mood-Based Comic Recommender</h1>
+          </div>
+          <p className="mt-2 text-gray-600">
+            Upload a photo of yourself and we'll recommend comics based on your mood
+          </p>
+        </header>
+        
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <MoodDetector onMoodDetected={setDetectedMood} />
+          {detectedMood && <ComicRecommendations mood={detectedMood} />}
+        </div>
       </div>
     </div>
   );
